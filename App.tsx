@@ -145,9 +145,9 @@ const App: React.FC = () => {
              </svg>
           </div>
           <h1 className="text-5xl font-black text-slate-900 tracking-tighter mb-2">
-            AI Quiz <span className="text-indigo-600">Studio</span>
+            Kakani 's <span className="text-indigo-600">AI Quiz</span>
           </h1>
-          <p className="text-slate-500 font-medium">Professional assessments powered by Gemini</p>
+         
         </header>
 
         {currentStep === 'form' && (
@@ -421,7 +421,7 @@ const App: React.FC = () => {
         )}
 
         <footer className="mt-20 text-center text-slate-300 font-black text-[10px] uppercase tracking-[0.4em] animate-pulse">
-           Powered by Gemini Pro • Production Build
+           Powered by Sripadha Kakani 
         </footer>
       </div>
     </div>
