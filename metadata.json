@@ -1,0 +1,5 @@
+{
+  "name": "AI Quiz Pro",
+  "description": "A production-ready AI-powered quiz generator that creates custom multiple-choice assessments on any topic using Google Gemini.",
+  "requestFramePermissions": []
+}
