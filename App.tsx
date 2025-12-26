@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { GoogleGenAI, Type } from "@google/genai";
-import { Difficulty, QuizData, QuizQuestion } from './types';
+import { Difficulty, QuizData, QuizQuestion, QuizMode } from './types';
 
 const App: React.FC = () => {
   // Form State
   const [topic, setTopic] = useState('');
   const [difficulty, setDifficulty] = useState<Difficulty>(Difficulty.MEDIUM);
   const [count, setCount] = useState(5);
+  const [mode, setMode] = useState<QuizMode>('mixed');
 
   // App State
   const [loading, setLoading] = useState(false);
@@ -15,7 +16,7 @@ const App: React.FC = () => {
   const [currentStep, setCurrentStep] = useState<'form' | 'quiz' | 'result'>('form');
   const [isReviewMode, setIsReviewMode] = useState(false);
 
-  // Quiz Interaction State: store everything as strings to normalize MCQ indices and text input
+  // Quiz Interaction State
   const [userAnswers, setUserAnswers] = useState<string[]>([]);
   const [score, setScore] = useState(0);
 
@@ -31,15 +32,15 @@ const App: React.FC = () => {
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       
+      const modeInstruction = mode === 'mixed' 
+        ? "Mix these types: 'mcq' (Multiple Choice), 'short' (Short Answer), and 'blank' (Fill in the blanks using '____')."
+        : `Strictly generate ONLY '${mode}' type questions.`;
+
       const response = await ai.models.generateContent({
         model: "gemini-3-flash-preview",
-        contents: `Generate a mixed-format quiz about "${topic}". Difficulty: ${difficulty}. Total questions: ${count}. 
-        Mix these types: 
-        1. 'mcq' (Multiple Choice)
-        2. 'short' (Short Answer - descriptive but concise)
-        3. 'blank' (Fill in the blanks - use "____" in the question string).`,
+        contents: `Generate a ${mode} quiz about "${topic}". Difficulty: ${difficulty}. Total questions: ${count}. ${modeInstruction}`,
         config: {
-          systemInstruction: "You are a versatile quiz creator. For each quiz, generate a diverse mix of MCQs, Short Answers, and Fill-in-the-Blanks. Ensure high academic quality. Return JSON only. 'correctAnswer' must be a string. For MCQs, it must be the index (0-3). For others, it must be the exact correct answer.",
+          systemInstruction: "You are a versatile quiz creator. Return JSON only. 'correctAnswer' must be a string. For MCQs, it must be the index (0-3). For others, it must be the exact correct answer word or short phrase. Provide clear explanations for why the answer is correct.",
           responseMimeType: "application/json",
           responseSchema: {
             type: Type.OBJECT,
@@ -57,11 +58,11 @@ const App: React.FC = () => {
                     options: {
                       type: Type.ARRAY,
                       items: { type: Type.STRING },
-                      description: "Required only for type 'mcq'. Must have 4 items."
+                      description: "Required ONLY if type is 'mcq'. Must have exactly 4 items."
                     },
                     correctAnswer: { 
                       type: Type.STRING,
-                      description: "The correct answer. String representation of index for MCQ (e.g. '0'), or the word for others."
+                      description: "The correct answer. String representation of index for MCQ (e.g. '0'), or the exact text for others."
                     },
                     explanation: { type: Type.STRING }
                   },
@@ -99,8 +100,6 @@ const App: React.FC = () => {
   const isCorrect = (question: QuizQuestion, userAns: string) => {
     const target = question.correctAnswer.toLowerCase().trim();
     const actual = userAns.toLowerCase().trim();
-    // For MCQ, we expect exact index string match.
-    // For others, we allow simple string equality.
     return target === actual;
   };
 
@@ -129,6 +128,13 @@ const App: React.FC = () => {
     setCurrentStep('quiz');
   };
 
+  const modes: { id: QuizMode; label: string; icon: string }[] = [
+    { id: 'mixed', label: 'Mixed', icon: '🎭' },
+    { id: 'mcq', label: 'MCQs', icon: '🔘' },
+    { id: 'blank', label: 'Blanks', icon: '✍️' },
+    { id: 'short', label: 'Short Ans', icon: '📝' },
+  ];
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] py-12 px-4 selection:bg-indigo-100">
       <div className="max-w-3xl mx-auto">
@@ -141,7 +147,7 @@ const App: React.FC = () => {
           <h1 className="text-5xl font-black text-slate-900 tracking-tighter mb-2">
             AI Quiz <span className="text-indigo-600">Studio</span>
           </h1>
-          <p className="text-slate-500 font-medium">Mixed-mode assessments powered by Gemini</p>
+          <p className="text-slate-500 font-medium">Professional assessments powered by Gemini</p>
         </header>
 
         {currentStep === 'form' && (
@@ -157,6 +163,29 @@ const App: React.FC = () => {
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
                 />
+              </div>
+
+              <div className="space-y-4">
+                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Assessment Mode</label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {modes.map((m) => (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => setMode(m.id)}
+                      className={`flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all group ${
+                        mode === m.id 
+                          ? 'border-indigo-600 bg-indigo-50/50' 
+                          : 'border-slate-50 bg-slate-50/50 hover:bg-slate-100 hover:border-slate-200'
+                      }`}
+                    >
+                      <span className="text-2xl mb-1 group-hover:scale-110 transition-transform">{m.icon}</span>
+                      <span className={`text-[10px] font-black uppercase tracking-tight ${mode === m.id ? 'text-indigo-600' : 'text-slate-400'}`}>
+                        {m.label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
@@ -207,11 +236,11 @@ const App: React.FC = () => {
                 {loading ? (
                   <div className="flex items-center gap-3">
                     <div className="w-6 h-6 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-                    Curating Content...
+                    Crafting {mode.toUpperCase()}...
                   </div>
                 ) : (
                   <>
-                    Generate Masterpiece
+                    Launch Assessment
                     <svg className="w-6 h-6 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>

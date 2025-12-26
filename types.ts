@@ -6,6 +6,8 @@ export enum Difficulty {
 
 export type QuestionType = 'mcq' | 'short' | 'blank';
 
+export type QuizMode = 'mcq' | 'short' | 'blank' | 'mixed';
+
 export interface QuizQuestion {
   type: QuestionType;
   question: string;
@@ -22,4 +24,5 @@ export interface QuizRequest {
   topic: string;
   difficulty: Difficulty;
   count: number;
+  mode: QuizMode;
 }
