@@ -1,14 +1,17 @@
-
 export enum Difficulty {
   EASY = 'Easy',
   MEDIUM = 'Medium',
   HARD = 'Hard'
 }
 
+export type QuestionType = 'mcq' | 'short' | 'blank';
+
 export interface QuizQuestion {
+  type: QuestionType;
   question: string;
-  options: string[];
-  correctAnswer: number;
+  options?: string[]; // Only used for mcq
+  correctAnswer: string; // For mcq this is the index (0-3), for others it is the word/phrase
+  explanation?: string;
 }
 
 export interface QuizData {

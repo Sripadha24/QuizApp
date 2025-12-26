@@ -12,7 +12,7 @@
         background-color: #F9FAFB;
         color: #111827;
       }
-      /* Custom scrollbar for better aesthetics */
+      /* Custom scrollbar */
       ::-webkit-scrollbar {
         width: 8px;
       }
@@ -25,6 +25,14 @@
       }
       ::-webkit-scrollbar-thumb:hover {
         background: #cbd5e1;
+      }
+      @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0px); }
+      }
+      .float-animation {
+        animation: float 3s ease-in-out infinite;
       }
     </style>
     <script type="importmap">
