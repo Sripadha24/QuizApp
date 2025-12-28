@@ -1,3 +1,4 @@
+
 export enum Difficulty {
   EASY = 'Easy',
   MEDIUM = 'Medium',
@@ -25,4 +26,9 @@ export interface QuizRequest {
   difficulty: Difficulty;
   count: number;
   mode: QuizMode;
+}
+
+export interface ChatMessage {
+  role: 'user' | 'model';
+  text: string;
 }
