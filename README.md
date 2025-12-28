@@ -1,5 +1,5 @@
 
-# AI Quiz Pro
+# Kakani's Exam Prep
 
 A secure, production-ready AI Quiz Generator built with React and Google Gemini.
 
