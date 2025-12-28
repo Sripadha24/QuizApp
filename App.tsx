@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Analytics } from "@vercel/analytics/react";
 import { GoogleGenAI, Type } from "@google/genai";
 import { Difficulty, QuizData, QuizQuestion, QuizMode } from './types';
 
@@ -424,6 +425,7 @@ const App: React.FC = () => {
            Powered by Sripadha Kakani 
         </footer>
       </div>
+      <Analytics />
     </div>
   );
 };
