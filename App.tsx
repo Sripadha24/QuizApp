@@ -132,7 +132,7 @@ const App: React.FC = () => {
       });
 
       const textOutput = response.text;
-      if (!textOutput) throw new Error("AI returned empty content");
+      if (!textOutput) throw new Error("AI returned empty content. Try again.");
       const data: QuizData = JSON.parse(textOutput);
       
       if (!data.questions || !Array.isArray(data.questions)) {
@@ -143,7 +143,10 @@ const App: React.FC = () => {
       setUserAnswers(new Array(data.questions.length).fill(''));
       setCurrentStep('quiz');
     } catch (err: any) {
-      setError('Error generating quiz. Please check your subject and try again.');
+      console.error(err);
+      setError(err.message?.includes('429') 
+        ? "Rate limit exceeded. Please wait a minute and try again." 
+        : "Failed to generate quiz. Please check your subject or API key.");
     } finally {
       setLoading(false);
     }
@@ -173,11 +176,12 @@ const App: React.FC = () => {
         ? `the exam is TOMORROW (approx ${diffHours} hours left)` 
         : `the exam is in ${diffDays} days`;
 
+      // Using gemini-3-flash-preview for better reliability on free-tier keys
       const response = await ai.models.generateContent({
-        model: 'gemini-3-pro-preview',
-        contents: `Create a comprehensive CBSE Class 10 Board study roadmap for: "${topic}". Context: ${timeContext}. Plan for ${diffHours <= 24 ? 'hours' : 'days'}. Include priorities and study methods.`,
+        model: 'gemini-3-flash-preview',
+        contents: `Create a comprehensive CBSE Class 10 Board study roadmap for: "${topic}". Context: ${timeContext}. Plan for ${diffHours <= 24 ? 'hours' : 'days'}. Include priorities and study methods focusing on NCERT.`,
         config: {
-          systemInstruction: "You are a master CBSE 10th Board strategist. You know the exact NCERT syllabus and high-weightage topics. Plan effectively. Priority can be 'High', 'Medium', or 'Low'. Method should explain HOW to study (e.g., 'Solve NCERT Exemplar', 'Active Recall diagrams'). Return JSON.",
+          systemInstruction: "You are a master CBSE 10th Board strategist. You know the exact NCERT syllabus and high-weightage topics. Plan effectively. Priority can be 'High', 'Medium', or 'Low'. Return JSON only.",
           responseMimeType: "application/json",
           responseSchema: {
             type: Type.OBJECT,
@@ -207,7 +211,7 @@ const App: React.FC = () => {
       });
 
       const textOutput = response.text;
-      if (!textOutput) throw new Error("AI returned empty content");
+      if (!textOutput) throw new Error("AI returned no data. Try again.");
       const data: RoadmapData = JSON.parse(textOutput);
 
       if (!data.subject || !data.entries) {
@@ -217,7 +221,10 @@ const App: React.FC = () => {
       setRoadmap(data);
       setCurrentStep('roadmap');
     } catch (err: any) {
-      setError("Could not generate roadmap. Please try a more specific subject name.");
+      console.error(err);
+      setError(err.message?.includes('429') 
+        ? "Quota exceeded! The free-tier API has reached its limit. Please wait a minute."
+        : "Could not generate roadmap. Please try a more specific subject name or check your connection.");
     } finally {
       setLoading(false);
     }
@@ -470,7 +477,12 @@ const App: React.FC = () => {
                   </div>
                 </div>
 
-                {error && <div className="p-4 bg-rose-50 text-rose-600 text-[12px] font-bold rounded-2xl border border-rose-100">{error}</div>}
+                {error && (
+                  <div className="p-4 bg-rose-50 text-rose-600 text-[12px] font-bold rounded-2xl border border-rose-100 flex items-start gap-3">
+                    <span className="text-lg">⚠️</span>
+                    <span>{error}</span>
+                  </div>
+                )}
 
                 <button
                   type="submit"
