@@ -28,6 +28,22 @@ export interface QuizRequest {
   mode: QuizMode;
 }
 
+export interface RoadmapEntry {
+  title: string;
+  duration: string;
+  focusTopics: string[];
+  method: string;
+  priority: 'High' | 'Medium' | 'Low';
+}
+
+export interface RoadmapData {
+  subject: string;
+  planType: 'Days' | 'Hours';
+  timeRemaining: string;
+  entries: RoadmapEntry[];
+  expertTips: string[];
+}
+
 export interface ChatMessage {
   role: 'user' | 'model';
   text: string;
